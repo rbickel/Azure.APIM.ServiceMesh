@@ -2,6 +2,13 @@
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
+    "instanceName": {
+      "type": "string",
+      "minLength": 1,
+      "metadata": {
+        "description": "The email address of the owner of the service"
+      }
+    },
     "publisherEmail": {
       "type": "string",
       "minLength": 1,
@@ -51,12 +58,12 @@
     }
   },
   "variables": {
-    "apiManagementServiceName": "[concat('apiservice', uniqueString(resourceGroup().id))]"
+    "apiMInstanceName":"[if(empty(parameters('instanceName')), concat('apiservice', uniqueString(resourceGroup().id)), parameters('instanceName'))]"
   },
   "resources": [
     {
       "apiVersion": "2017-03-01",
-      "name": "[variables('apiManagementServiceName')]",
+      "name": "[variables('apiMInstanceName')]",
       "type": "Microsoft.ApiManagement/service",
       "location": "[parameters('location')]",
       "tags": {},
