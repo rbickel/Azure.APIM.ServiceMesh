@@ -18,10 +18,13 @@
     },
     "sku": {
       "type": "string",
+      "defaultValue":"Consumption",
       "allowedValues": [
         "Developer",
         "Standard",
-        "Premium"
+        "Premium",
+        "Basic",
+        "Consumption"
       ],
       "defaultValue": "Developer",
       "metadata": {
