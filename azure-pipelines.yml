@@ -18,6 +18,7 @@ steps:
     #sourceFolder: # Optional
     contents: |
      azuredeploy.json
+     azuredeploy-apis.json
      !.git/**/*
     targetFolder: '$(Build.ArtifactStagingDirectory)'
     cleanTargetFolder: true # Optional
