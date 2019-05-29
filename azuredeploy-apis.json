@@ -2,298 +2,101 @@
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
-     "apiPolicy": {
+     "apiMInstanceName": {
       "type": "string",
+      "defaultValue": "DevOps-APIM",
       "metadata": {
-        "description": "API policy XML."
+        "description": "API Management instance name"
       }
     },
-    "operationPolicy": {
+    "apiBackendUrl": {
       "type": "string",
+      "defaultValue": "https://devops-serverlessavailabilitytest-app.azurewebsites.net/api",
       "metadata": {
-        "description": "Operation policy XML."
+        "description": "API Backend Url"
       }
     },
-    "productPolicy": {
+    "backendCode": {
       "type": "string",
+      "defaultValue": "BDk9zLmGrPyXAggQ3oWx3PQvkDBlIbSn72yz/XrcLUkG3G7gD0wd9g==",
       "metadata": {
-        "description": "Product policy XML."
+        "description": "API Backend Key"
       }
     }
   },
   "variables": {
-    "apiManagementServiceName": "[concat('apiservice', uniqueString(resourceGroup().id))]"
+    "apiManagementServiceName": "[parameters('apiMInstanceName')]"
   },
   "resources": [
     {
-      "apiVersion": "2017-03-01",
-      "type": "policies",
-      "name": "policy",
-      "dependsOn": [
-        "[concat('Microsoft.ApiManagement/service/', variables('apiManagementServiceName'))]"
-      ],
-      "properties": {
-        "policyContent": "[parameters('tenantPolicy')]"
-      }
-    },
-    {
-      "apiVersion": "2017-03-01",
-      "type": "apis",
-      "name": "PetStoreSwaggerImportExample",
-      "dependsOn": [
-        "[concat('Microsoft.ApiManagement/service/', variables('apiManagementServiceName'))]"
-      ],
-      "properties": {
-        "contentFormat": "SwaggerLinkJson",
-        "contentValue": "http://petstore.swagger.io/v2/swagger.json",
-        "path": "examplepetstore"
-      }
-    },
-    {
-      "apiVersion": "2017-03-01",
-      "type": "apis",
-      "name": "exampleApi",
-      "dependsOn": [
-        "[concat('Microsoft.ApiManagement/service/', variables('apiManagementServiceName'))]"
-      ],
-      "properties": {
-        "displayName": "Example API Name",
-        "description": "Description for example API",
-        "serviceUrl": "https://example.net",
-        "path": "exampleapipath",
-        "protocols": [
-          "HTTPS"
-        ]
-      },
-      "resources": [
-        {
-          "apiVersion": "2017-03-01",
-          "type": "operations",
-          "name": "exampleOperationsDELETE",
-          "dependsOn": [
-            "[concat('Microsoft.ApiManagement/service/', variables('apiManagementServiceName'), '/apis/exampleApi')]"
-          ],
-          "properties": {
-            "displayName": "DELETE resource",
-            "method": "DELETE",
-            "urlTemplate": "/resource",
-            "description": "A demonstration of a DELETE call"
-          }
-        },
-        {
-          "apiVersion": "2017-03-01",
-          "type": "operations",
-          "name": "exampleOperationsGET",
-          "dependsOn": [
-            "[concat('Microsoft.ApiManagement/service/', variables('apiManagementServiceName'), '/apis/exampleApi')]"
-          ],
-          "properties": {
-            "displayName": "GET resource",
-            "method": "GET",
-            "urlTemplate": "/resource",
-            "description": "A demonstration of a GET call"
-          },
-          "resources": [
-            {
-              "apiVersion": "2017-03-01",
-              "type": "policies",
-              "name": "policy",
-              "dependsOn": [
-                "[concat('Microsoft.ApiManagement/service/', variables('apiManagementServiceName'))]",
-                "[concat('Microsoft.ApiManagement/service/', variables('apiManagementServiceName'), '/apis/exampleApi')]",
-                "[concat('Microsoft.ApiManagement/service/', variables('apiManagementServiceName'), '/apis/exampleApi/operations/exampleOperationsGET')]"
-              ],
-              "properties": {
-                "policyContent": "[parameters('operationPolicy')]"
-              }
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "apiVersion": "2017-03-01",
       "type": "Microsoft.ApiManagement/service/apis",
-      "name": "exampleApiWithPolicy",
+      "apiVersion": "2019-01-01",
+      "name": "[concat(variables('apiManagementServiceName'), '/api')]",
       "dependsOn": [
-        "[concat('Microsoft.ApiManagement/service/', variables('apiManagementServiceName'))]"
       ],
       "properties": {
-        "displayName": "Example API Name with Policy",
-        "description": "Description for example API with policy",
-        "serviceUrl": "https://exampleapiwithpolicy.net",
-        "path": "exampleapiwithpolicypath",
-        "protocols": [
-          "HTTPS"
-        ]
-      },
-      "resources": [
-        {
-          "apiVersion": "2017-03-01",
-          "type": "policies",
-          "name": "policy",
-          "dependsOn": [
-            "[concat('Microsoft.ApiManagement/service/', variables('apiManagementServiceName'))]",
-            "[concat('Microsoft.ApiManagement/service/', variables('apiManagementServiceName'), '/apis/exampleApiWithPolicy')]"
+          "displayName": "API",
+          "apiRevision": "1",
+          "subscriptionRequired": false,
+          "serviceUrl": "[parameters('apiBackendUrl')]",
+          "protocols": [
+              "https"
           ],
-          "properties": {
-            "policyContent": "[parameters('apiPolicy')]"
-          }
+          "isCurrent": true,
+          "path": "/API"
+      }
+    },
+    {
+        "type": "Microsoft.ApiManagement/service/properties",
+        "apiVersion": "2019-01-01",
+        "name": "[concat(variables('apiManagementServiceName'), '/code')]",
+        "dependsOn": [
+        ],
+        "properties": {
+            "displayName": "code",
+            "value": "[parameters('backendCode')]",
+            "secret": true
         }
-      ]
     },
     {
-      "apiVersion": "2017-03-01",
-      "type": "Microsoft.ApiManagement/service/products",
-      "name": "exampleProduct",
-      "dependsOn": [
-        "[concat('Microsoft.ApiManagement/service/', variables('apiManagementServiceName'))]"
-      ],
-      "properties": {
-        "displayName": "Example Product Name",
-        "description": "Description for example product",
-        "terms": "Terms for example product",
-        "subscriptionRequired": true,
-        "approvalRequired": false,
-        "subscriptionsLimit": 1,
-        "state": "published"
-      },
-      "resources": [
-        {
-          "apiVersion": "2017-03-01",
-          "type": "apis",
-          "name": "exampleApi",
-          "dependsOn": [
-            "[concat('Microsoft.ApiManagement/service/', variables('apiManagementServiceName'))]",
-            "[concat('Microsoft.ApiManagement/service/', variables('apiManagementServiceName'), '/apis/exampleApi')]",
-            "[concat('Microsoft.ApiManagement/service/', variables('apiManagementServiceName'), '/products/exampleProduct')]"
-          ]
-        },
-        {
-          "apiVersion": "2017-03-01",
-          "type": "policies",
-          "name": "policy",
-          "dependsOn": [
-            "[concat('Microsoft.ApiManagement/service/', variables('apiManagementServiceName'))]",
-            "[concat('Microsoft.ApiManagement/service/', variables('apiManagementServiceName'), '/products/exampleProduct')]"
-          ],
-          "properties": {
-            "policyContent": "[parameters('productPolicy')]"
-          }
+        "type": "Microsoft.ApiManagement/service/apis/policies",
+        "apiVersion": "2019-01-01",
+        "name": "[concat(variables('apiManagementServiceName'), '/api/policy')]",
+        "dependsOn": [
+            "[resourceId('Microsoft.ApiManagement/service/apis', variables('apiManagementServiceName'), 'api')]",
+            "[resourceId('Microsoft.ApiManagement/service/properties', variables('apiManagementServiceName'), 'code')]"
+        ],
+        "properties": {
+            "value": "<policies>\r\n  <inbound>\r\n    <base />\r\n    <set-query-parameter name=\"code\" exists-action=\"override\">\r\n      <value>{{code}}</value>\r\n    </set-query-parameter>\r\n  </inbound>\r\n  <backend>\r\n    <base />\r\n  </backend>\r\n  <outbound>\r\n    <base />\r\n  </outbound>\r\n  <on-error>\r\n    <base />\r\n  </on-error>\r\n</policies>",
+            "format": "xml"
         }
-      ]
     },
     {
-      "apiVersion": "2017-03-01",
-      "type": "Microsoft.ApiManagement/service/users",
-      "name": "exampleUser1",
-      "dependsOn": [
-        "[concat('Microsoft.ApiManagement/service/', variables('apiManagementServiceName'))]"
-      ],
-      "properties": {
-        "firstName": "ExampleFirstName1",
-        "lastName": "ExampleLastName1",
-        "email": "ExampleFirst1@example.com",
-        "state": "active",
-        "note": "note for example user 1"
-      }
-    },
-    {
-      "apiVersion": "2017-03-01",
-      "type": "Microsoft.ApiManagement/service/users",
-      "name": "exampleUser2",
-      "dependsOn": [
-        "[concat('Microsoft.ApiManagement/service/', variables('apiManagementServiceName'))]"
-      ],
-      "properties": {
-        "firstName": "ExampleFirstName2",
-        "lastName": "ExampleLastName2",
-        "email": "ExampleFirst2@example.com",
-        "state": "active",
-        "note": "note for example user 2"
-      }
-    },
-    {
-      "apiVersion": "2017-03-01",
-      "type": "Microsoft.ApiManagement/service/users",
-      "name": "exampleUser3",
-      "dependsOn": [
-        "[concat('Microsoft.ApiManagement/service/', variables('apiManagementServiceName'))]"
-      ],
-      "properties": {
-        "firstName": "ExampleFirstName3",
-        "lastName": "ExampleLastName3",
-        "email": "ExampleFirst3@example.com",
-        "state": "active",
-        "note": "note for example user 3"
-      }
-    },
-    {
-      "apiVersion": "2017-03-01",
-      "type": "Microsoft.ApiManagement/service/properties",
-      "name": "exampleproperties",
-      "dependsOn": [
-        "[concat('Microsoft.ApiManagement/service/', variables('apiManagementServiceName'))]"
-      ],
-      "properties": {
-        "displayName": "propertyExampleName",
-        "value": "propertyExampleValue",
-        "tags": [
-          "exampleTag"
-        ]
-      }
-    },
-    {
-      "apiVersion": "2017-03-01",
-      "type": "Microsoft.ApiManagement/service/subscriptions",
-      "name": "examplesubscription1",
-      "dependsOn": [
-        "[concat('Microsoft.ApiManagement/service/', variables('apiManagementServiceName'))]",
-        "[concat('Microsoft.ApiManagement/service/', variables('apiManagementServiceName'), '/products/exampleProduct')]",
-        "[concat('Microsoft.ApiManagement/service/', variables('apiManagementServiceName'), '/users/exampleUser1')]"
-      ],
-      "properties": {
-        "productId": "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ApiManagement/service/exampleServiceName/products/exampleProduct",
-        "userId": "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ApiManagement/service/exampleServiceName/users/exampleUser1"
-      }
-    },
-    {
-      "apiVersion": "2017-03-01",
-      "type": "Microsoft.ApiManagement/service/subscriptions",
-      "name": "examplesubscription2",
-      "dependsOn": [
-        "[concat('Microsoft.ApiManagement/service/', variables('apiManagementServiceName'))]",
-        "[concat('Microsoft.ApiManagement/service/', variables('apiManagementServiceName'), '/products/exampleProduct')]",
-        "[concat('Microsoft.ApiManagement/service/', variables('apiManagementServiceName'), '/users/exampleUser3')]",
-        "[concat('Microsoft.ApiManagement/service/', variables('apiManagementServiceName'), '/subscriptions/examplesubscription1')]"
-      ],
-      "properties": {
-        "productId": "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ApiManagement/service/exampleServiceName/products/exampleProduct",
-        "userId": "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ApiManagement/service/exampleServiceName/users/exampleUser3"
-      }
-    },
-    {
-      "apiVersion": "2017-03-01",
-      "type": "Microsoft.ApiManagement/service/groups",
-      "name": "exampleGroup",
-      "dependsOn": [
-        "[concat('Microsoft.ApiManagement/service/', variables('apiManagementServiceName'))]"
-      ],
-      "properties": {
-        "displayName": "Example Group Name",
-        "description": "Example group description"
-      },
-      "resources": [
-        {
-          "apiVersion": "2017-03-01",
-          "type": "users",
-          "name": "exampleUser3",
-          "dependsOn": [
-            "[concat('Microsoft.ApiManagement/service/', variables('apiManagementServiceName'))]",
-            "[concat('Microsoft.ApiManagement/service/', variables('apiManagementServiceName'), '/groups/exampleGroup')]"
-          ]
+        "type": "Microsoft.ApiManagement/service/properties",
+        "apiVersion": "2019-01-01",
+        "name": "[concat(variables('apiManagementServiceName'), '/endpoint')]",
+        "dependsOn": [
+        ],
+        "properties": {
+            "displayName": "endpoint",
+            "value": "[parameters('apiBackendUrl')]",
+            "secret": false
         }
-      ]
+    },
+    {
+        "type": "Microsoft.ApiManagement/service/apis/operations",
+        "apiVersion": "2019-01-01",
+        "name": "[concat(variables('apiManagementServiceName'), '/api/Ping')]",
+        "dependsOn": [
+            "[resourceId('Microsoft.ApiManagement/service/apis', variables('apiManagementServiceName'), 'api')]",
+        ],
+        "properties": {
+            "displayName": "Ping",
+            "method": "GET",
+            "urlTemplate": "/ping",
+            "templateParameters": [],
+            "responses": []
+        }
     }
   ]
 }
