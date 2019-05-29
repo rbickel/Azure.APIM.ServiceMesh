@@ -88,7 +88,7 @@
         "apiVersion": "2019-01-01",
         "name": "[concat(variables('apiManagementServiceName'), '/api/Ping')]",
         "dependsOn": [
-            "[resourceId('Microsoft.ApiManagement/service/apis', variables('apiManagementServiceName'), 'api')]",
+            "[resourceId('Microsoft.ApiManagement/service/apis', variables('apiManagementServiceName'), 'api')]"
         ],
         "properties": {
             "displayName": "Ping",
@@ -98,5 +98,11 @@
             "responses": []
         }
     }
-  ]
+  ],
+  "outputs": {
+    "ServiceUrl":{
+        "type":"string",
+        "value":"[reference(resourceId('Microsoft.ApiManagement/service/apis', variables('apiManagementServiceName'), 'api'),'2019-01-01').serviceUrl]"
+    }
+  }
 }
